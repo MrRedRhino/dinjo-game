@@ -44,13 +44,13 @@ public class RayCaster {
             } else {
                 for (int i = 0; i < maxDistance; i++) {
                     Vector2 pos2 = new Vector2(firstIntersection.x - (16 * i + 16) / dir.y * dir.x,
-                            firstIntersection.y + (16 * i + 16) / dir.y * dir.x * (dir.y < 0 ? 1 : -1));
+                            firstIntersection.y + (16 * i * sign(dir.y) + 16));
                     r.circle(pos2.x, pos2.y, 1f);
 
-                    if (!Main.map.getCell(pos2).transparent) {
-                        Main.map.highlightCell(pos2, r);
-                        break;
-                    }
+//                    if (!Main.map.getCell(pos2).transparent) {
+//                        Main.map.highlightCell(pos2, r);
+//                        break;
+//                    }
                 }
             }
         }
@@ -58,5 +58,9 @@ public class RayCaster {
         r.circle(firstIntersection.x, firstIntersection.y, 1f);
         r.line(pos.x, pos.y, pos.x + dir.x * -100, pos.y + dir.y * 100);
         return null;
+    }
+
+    private static int sign(float i) {
+        return i > 0 ? 1 : -1;
     }
 }
