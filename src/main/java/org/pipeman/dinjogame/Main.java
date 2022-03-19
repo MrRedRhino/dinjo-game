@@ -4,8 +4,6 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -21,7 +19,7 @@ public class Main extends ApplicationAdapter {
     SpriteBatch batch;
     Texture dirtTexture;
     Texture grassTexture;
-    static Camera camera;
+    public static Camera camera;
     int x = 0;
     public static ChickenEntity chickenEntity;
     public static InputMultiplexer inputMultiplexer;
@@ -39,15 +37,29 @@ public class Main extends ApplicationAdapter {
 
         map = new Tilemap();
 
-        for (int x = 0; x < 10; x++) {
-            for (int y = 9; y >= 0; y--) {
-                if (map.getCell(x, y + 1) == null) {
-                    map.setCell(x, y, new Tile(TileType.GRASS, x, y));
-                } else {
-                    map.setCell(x, y, new Tile(TileType.DIRT, x, y));
-                }
-                System.out.println(x + " " + y);
-            }
+        // left wall
+        for (int i = 20; i > 10; i--) {
+            tempSetCell(10, i);
+        }
+        // top
+        for (int i = 10; i < 20; i++) {
+            tempSetCell(i, 20);
+        }
+        // right wall
+        for (int i = 20; i > 10; i--) {
+            tempSetCell(20, i);
+        }
+        // floor
+        for (int i = 10; i < 20; i++) {
+            tempSetCell(i, 10);
+        }
+    }
+
+    private void tempSetCell(int x, int y) {
+        if (map.getCell(x, y + 1).transparent) {
+            map.setCell(x, y, new Tile(TileType.GRASS, x, y));
+        } else {
+            map.setCell(x, y, new Tile(TileType.DIRT, x, y));
         }
     }
 

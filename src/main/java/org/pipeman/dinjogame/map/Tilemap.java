@@ -33,7 +33,7 @@ public class Tilemap {
             r.end();
             r.begin(ShapeRenderer.ShapeType.Filled);
         }
-        r.rect(x * 16, y * 16, 16, 16);
+//        r.rect(x * 16, y * 16, 16, 16);
     }
 
     public void highlightCell(Vector2 publicPos, ShapeRenderer r) {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 
 public class Camera {
     OrthographicCamera camera;
@@ -45,5 +46,10 @@ public class Camera {
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height);
         hasMoved = true;
+    }
+
+    public Vector2 unProjectMousePos() {
+        Vector3 vector3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        return new Vector2(vector3.x, vector3.y);
     }
 }
