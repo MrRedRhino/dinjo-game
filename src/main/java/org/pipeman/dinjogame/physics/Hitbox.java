@@ -1,15 +1,11 @@
 package org.pipeman.dinjogame.physics;
 
-public class Hitbox {
-    public float xOffset;
-    public float yOffset;
-    public float xSize;
-    public float ySize;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 
-    public Hitbox(float xOffset, float yOffset, float xSize, float ySize) {
-        this.xOffset = xOffset;
-        this.yOffset = yOffset;
-        this.xSize = xSize;
-        this.ySize = ySize;
+public record Hitbox(float xOffset, float yOffset, float xSize, float ySize) {
+
+    public void drawDebugRect(ShapeRenderer shapeRenderer, Vector2 pos) {
+        shapeRenderer.rect(pos.x + xOffset, pos.y + yOffset, xSize, ySize);
     }
 }

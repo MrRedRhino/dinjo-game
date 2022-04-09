@@ -9,9 +9,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class Camera {
-    OrthographicCamera camera;
-    SpriteBatch batch;
-    ShapeRenderer shapeRenderer;
+    final OrthographicCamera camera;
+    public final SpriteBatch batch;
+    public final ShapeRenderer shapeRenderer;
     Vector2 targetPos;
     boolean hasMoved = false;
 

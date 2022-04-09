@@ -2,6 +2,7 @@ package org.pipeman.dinjogame;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.Vector2;
+import org.pipeman.dinjogame.map.TileType;
 
 public class InputProcessor implements com.badlogic.gdx.InputProcessor {
     @Override
@@ -15,23 +16,12 @@ public class InputProcessor implements com.badlogic.gdx.InputProcessor {
                 Main.camera.camera.zoom -= 0.1f;
                 Main.camera.hasMoved = true;
             }
-
-            case Input.Keys.W -> Main.chickenEntity.addVelocity(new Vector2(0f, 1f));
-            case Input.Keys.S -> Main.chickenEntity.addVelocity(new Vector2(0f, -1f));
-            case Input.Keys.A -> Main.chickenEntity.addVelocity(new Vector2(-1f, 0f));
-            case Input.Keys.D -> Main.chickenEntity.addVelocity(new Vector2(1f, 0f));
         }
         return false;
     }
 
     @Override
     public boolean keyUp(int i) {
-        switch (i) {
-            case Input.Keys.W, Input.Keys.S ->
-                    Main.chickenEntity.setVelocity(new Vector2(Main.chickenEntity.getVelocity().x, 0));
-            case Input.Keys.A, Input.Keys.D ->
-                    Main.chickenEntity.setVelocity(new Vector2(0, Main.chickenEntity.getVelocity().y));
-        }
         return false;
     }
 
@@ -42,6 +32,8 @@ public class InputProcessor implements com.badlogic.gdx.InputProcessor {
 
     @Override
     public boolean touchDown(int i, int i1, int i2, int i3) {
+        Vector2 mouse = Main.camera.unProjectMousePos();
+        Main.map.setCell((int) mouse.x / 16, (int) mouse.y / 16, i3 == 0 ? TileType.GRASS : TileType.EMPTY, true);
         return false;
     }
 

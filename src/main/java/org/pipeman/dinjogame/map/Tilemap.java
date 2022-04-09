@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tilemap {
-    Map<Integer, TileRow> tiles = new HashMap<>(); // TODO tile type enum for storing them
+    final Map<Integer, TileRow> tiles = new HashMap<>();
 
     public void draw(SpriteBatch batch) {
         for (TileRow r : tiles.values()) {
@@ -27,54 +27,62 @@ public class Tilemap {
         }
     }
 
-    private void privateHighlightCell(int x, int y, ShapeRenderer r) {
-        r.setColor(new Color(0, 0.5f, 0.5f, 0.1f));
+    public void highlightCell(Vector2 publicPos, ShapeRenderer r) {
+        r.setColor(new Color(0, 0.5f, 0.5f, 0.5f));
         if (r.getCurrentType() != ShapeRenderer.ShapeType.Filled) {
             r.end();
             r.begin(ShapeRenderer.ShapeType.Filled);
         }
-//        r.rect(x * 16, y * 16, 16, 16);
+        r.rect((int) publicPos.x >> 4 << 4, (int) publicPos.y >> 4 << 4, 16, 16);
     }
 
-    public void highlightCell(Vector2 publicPos, ShapeRenderer r) {
-        privateHighlightCell((int) publicPos.x / 16, (int) publicPos.y / 16, r);
-    }
-
-    public void highlightCell(int x, int y, ShapeRenderer r) {
-        privateHighlightCell(x, y, r);
-    }
-
-    public void setCell(int x, int y, Tile t) {
-        if (tiles.containsKey(x)) {
-            TileRow r = tiles.get(x);
-            if (r.tiles.containsKey(y)) {
-                r.tiles.replace(y, t);
-            } else {
-                r.tiles.put(y, t);
-            }
+    public void setCell(int x, int y, Tile t, boolean update) {
+        if (t.t() == TileType.EMPTY) {
+            emptyCell(x, y);
         } else {
-            tiles.put(x, new TileRow(t, y));
+            if (tiles.containsKey(x)) {
+                TileRow r = tiles.get(x);
+                if (r.tiles.containsKey(y)) {
+                    r.tiles.replace(y, t);
+                } else {
+                    r.tiles.put(y, t);
+                }
+            } else {
+                tiles.put(x, new TileRow(t, y));
+            }
         }
+
+        if (!update) return;
+        if (getCell(x, y - 1) == TileType.GRASS) {
+            setCell(x, y - 1, TileType.DIRT, false);
+        }
+        if (getCell(x, y + 1) != TileType.EMPTY) {
+            setCell(x, y, TileType.DIRT, false);
+        }
+    }
+
+    public void emptyCell(int x, int y) {
+        TileRow row = tiles.get(x);
+        if (row != null) {
+            row.tiles.remove(y);
+            if (row.tiles.values().isEmpty()) {
+                tiles.remove(x);
+            }
+        }
+    }
+
+    public void setCell(int x, int y, TileType t, boolean update) {
+        setCell(x, y, new Tile(t, x, y), update);
     }
 
     public TileType getCell(int x, int y) {
         TileRow r = tiles.get(x);
-        return r == null || r.tiles.get(y) == null ? TileType.EMPTY : r.tiles.get(y).t;
-    }
-
-    public TileType getCell(Vector2 publicPos) {
-        TileRow r = tiles.get((int) publicPos.x / 16);
-        return r == null || r.tiles.get((int) publicPos.y / 16) == null ?
-                TileType.EMPTY : r.tiles.get((int) publicPos.y / 16).t;
+        return r == null || r.tiles.get(y) == null ? TileType.EMPTY : r.tiles.get(y).t();
     }
 }
 
 class TileRow {
-    public HashMap<Integer, Tile> tiles;
-
-    public TileRow() {
-        tiles = new HashMap<>();
-    }
+    public final HashMap<Integer, Tile> tiles;
 
     public TileRow(Tile newTile, int y) {
         tiles = new HashMap<>();
@@ -87,6 +95,7 @@ class TileRow {
         }
     }
 
+    @Override
     public String toString() {
         return tiles.toString();
     }

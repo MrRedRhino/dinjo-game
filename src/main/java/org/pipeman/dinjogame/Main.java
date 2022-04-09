@@ -12,20 +12,17 @@ import org.pipeman.dinjogame.entities.ChickenEntity;
 import org.pipeman.dinjogame.map.Tile;
 import org.pipeman.dinjogame.map.TileType;
 import org.pipeman.dinjogame.map.Tilemap;
-import org.pipeman.dinjogame.physics.RayCaster;
 
 public class Main extends ApplicationAdapter {
     public static Tilemap map;
     SpriteBatch batch;
-    Texture dirtTexture;
-    Texture grassTexture;
     public static Camera camera;
-    int x = 0;
     public static ChickenEntity chickenEntity;
     public static InputMultiplexer inputMultiplexer;
 
     @Override
     public void create () {
+        System.out.println("something");
         inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new InputProcessor());
         Gdx.input.setInputProcessor(inputMultiplexer);
@@ -34,32 +31,25 @@ public class Main extends ApplicationAdapter {
         camera = new Camera(batch);
 
         chickenEntity = new ChickenEntity(new Texture("chicken.png"));
+        chickenEntity.teleport(200, 400);
 
         map = new Tilemap();
 
         // left wall
         for (int i = 20; i > 10; i--) {
-            tempSetCell(10, i);
+            map.setCell(10, i, TileType.GRASS, true);
         }
         // top
         for (int i = 10; i < 20; i++) {
-            tempSetCell(i, 20);
+            map.setCell(i, 20, TileType.GRASS, true);
         }
         // right wall
         for (int i = 20; i > 10; i--) {
-            tempSetCell(20, i);
+            map.setCell(20, i, TileType.GRASS, true);
         }
         // floor
         for (int i = 10; i < 20; i++) {
-            tempSetCell(i, 10);
-        }
-    }
-
-    private void tempSetCell(int x, int y) {
-        if (map.getCell(x, y + 1).transparent) {
-            map.setCell(x, y, new Tile(TileType.GRASS, x, y));
-        } else {
-            map.setCell(x, y, new Tile(TileType.DIRT, x, y));
+            map.setCell(i, 10, TileType.GRASS, true);
         }
     }
 
@@ -76,22 +66,14 @@ public class Main extends ApplicationAdapter {
 
         camera.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         camera.shapeRenderer.setColor(Color.RED);
-        chickenEntity.getHitbox().drawDebugRect(camera.shapeRenderer);
+        chickenEntity.getHitbox().drawDebugRect(camera.shapeRenderer, chickenEntity.getPos());
         camera.shapeRenderer.setColor(Color.BLACK);
         map.drawDebugLines(camera.shapeRenderer);
         camera.shapeRenderer.setColor(Color.MAGENTA);
-        RayCaster.debugRayCastToTile(
-                chickenEntity.getPos().add(8, 8),
-                chickenEntity.getVelocity().cpy(),
-                camera.shapeRenderer, 5);
         camera.shapeRenderer.end();
 
 
-        x += 100;
         camera.update();
-        if (x == 1000) {
-            camera.setPos(100, 0);
-        }
     }
 
     @Override

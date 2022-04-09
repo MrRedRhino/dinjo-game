@@ -1,62 +1,71 @@
 package org.pipeman.dinjogame.physics;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import org.pipeman.dinjogame.Main;
-import org.pipeman.dinjogame.map.TileType;
+import static org.pipeman.dinjogame.Main.map;
+import static java.lang.Math.sqrt;
 
 public class RayCaster {
-    static float radiant = 0;
+    static final float maxDistance = 400;
 
-    public static Vector2 rayCastToTile(Vector2 pos, Vector2 dir) {
+    public static Vector2 rayCastToTile(Vector2 start, Vector2 dir) {
+        dir.nor();
+
+        Vector2 rayUnitStepSize = new Vector2(
+                (float) sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)),
+                (float) sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))
+        );
+
+        Vector2 mapCheck = new Vector2();
+        mapCheck.x = start.x;
+        mapCheck.y = start.y;
+
+        Vector2 rayLength1d = new Vector2();
+        Vector2 step = new Vector2();
+
+        if (dir.x < 0) {
+            step.x = -1;
+            rayLength1d.x = (start.x - mapCheck.x) * rayUnitStepSize.x;
+        } else {
+            step.x = 1;
+            rayLength1d.x = ((mapCheck.x + 1) - start.x) * rayUnitStepSize.x;
+        }
+
+        if (dir.y > 0) {
+            step.y = 1;
+            rayLength1d.y = (start.y - mapCheck.y) * rayUnitStepSize.y;
+        } else {
+            step.y = -1;
+            rayLength1d.y = (mapCheck.y + 1 - start.y) * rayUnitStepSize.y;
+        }
+
+        float distance = 0;
+        while (distance < maxDistance) {
+            if (rayLength1d.x < rayLength1d.y) {
+                mapCheck.x += step.x;
+                distance = rayLength1d.x;
+                rayLength1d.x += rayUnitStepSize.x;
+            } else {
+                mapCheck.y += step.y;
+                distance = rayLength1d.y;
+                rayLength1d.y += rayUnitStepSize.y;
+            }
+
+            if (!map.getCell((int) mapCheck.x / 16, (int) mapCheck.y / 16).transparent) {
+                return mapCheck;
+            }
+        }
         return null;
     }
     
-    public static Vector2 debugRayCastToTile(Vector2 pos, Vector2 dir, ShapeRenderer r, int maxDistance) {
-        radiant += 0.001;
-        dir = new Vector2(1, 0).rotateRad(radiant);
-        dir.nor();
-
-        Vector2 firstHorizontalIntersection = new Vector2();
-        firstHorizontalIntersection.x = dir.x < 0 ? (int) (pos.x / 16 + 1) * 16 : (int) (pos.x / 16) * 16;
-        firstHorizontalIntersection.y = pos.y + (firstHorizontalIntersection.x - pos.x) / dir.x * dir.y;
-
-        Vector2 firstVerticalIntersection = new Vector2();
-        firstVerticalIntersection.y = (int) (dir.y < 0 ? pos.y / 16 + 1 : pos.y / 16) * 16;
-        firstVerticalIntersection.x = pos.x - (pos.y - firstVerticalIntersection.y) / dir.y * dir.x;
-
-        Vector2 verticalVec = new Vector2();
-        verticalVec.x = 16 / dir.y * dir.x * sign(dir.y);
-        verticalVec.y = sign(dir.y) * 16;
-
-        Vector2 curPos2 = firstVerticalIntersection.cpy();
-
-        Vector2 horizontalVec = new Vector2();
-        horizontalVec.x = sign(dir.x) * 16;
-        horizontalVec.y = 16 / dir.x * dir.y * sign(dir.x);
-
-        Vector2 curPos = new Vector2(firstHorizontalIntersection);
-        for (int i = 0; i < 100; i++) {
-            curPos.add(horizontalVec);
-            curPos2.add(verticalVec);
-
-            r.setColor(Color.GOLDENROD);
-            r.circle(curPos.x, curPos.y, 1); // vertical |
-            r.circle(curPos2.x, curPos2.y, 2); // horizontal ---
-            r.setColor(Color.MAGENTA);
-
-            Vector2 tmp = curPos.cpy().add(-1, 0);
-            if (!Main.map.getCell(tmp).transparent) r.circle(tmp.x, tmp.y, 3);
-
-
+    public static Vector2 debugRayCastToTile(Vector2 start, Vector2 dir, ShapeRenderer r) {
+        r.line(start.x, start.y, start.x + dir.x * 100, start.y + dir.y * 100);
+        Vector2 result = rayCastToTile(start, dir);
+        if (result != null) {
+            map.highlightCell(result, r);
+            r.circle(result.x, result.y, 1);
         }
 
-        r.line(pos.x, pos.y, pos.x + dir.x * 100, pos.y + dir.y * 100);
-        return null;
-    }
-
-    private static int sign(float i) {
-        return i > 0 ? 1 : -1;
+        return result;
     }
 }
