@@ -16,6 +16,7 @@ public class InputProcessor implements com.badlogic.gdx.InputProcessor {
                 Main.camera.camera.zoom -= 0.1f;
                 Main.camera.hasMoved = true;
             }
+            case Input.Keys.R -> Main.chickenEntity.teleport(200, 400);
         }
         return false;
     }

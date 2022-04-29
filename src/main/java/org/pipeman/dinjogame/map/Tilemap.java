@@ -50,14 +50,13 @@ public class Tilemap {
             } else {
                 tiles.put(x, new TileRow(t, y));
             }
-        }
-
-        if (!update) return;
-        if (getCell(x, y - 1) == TileType.GRASS) {
-            setCell(x, y - 1, TileType.DIRT, false);
-        }
-        if (getCell(x, y + 1) != TileType.EMPTY) {
-            setCell(x, y, TileType.DIRT, false);
+            if (!update) return;
+            if (getCell(x, y - 1) == TileType.GRASS) {
+                setCell(x, y - 1, TileType.DIRT, false);
+            }
+            if (getCell(x, y + 1) != TileType.EMPTY) {
+                setCell(x, y, TileType.DIRT, false);
+            }
         }
     }
 

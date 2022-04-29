@@ -7,9 +7,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import org.pipeman.dinjogame.Main;
-import org.pipeman.dinjogame.map.TileType;
 import org.pipeman.dinjogame.physics.Hitbox;
-import org.pipeman.dinjogame.physics.RayCaster;
+import org.pipeman.dinjogame.physics.TileRayCastResult;
+
+import java.util.ArrayList;
 
 public class Entity {
     Sprite sprite;
@@ -32,39 +33,73 @@ public class Entity {
     }
 
     public void tick() {
+        if (Gdx.input.isKeyPressed(Input.Keys.A) && velocity.x > -4f) {
+            velocity.x -= 0.3f;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D) && velocity.x < 4f) {
+            velocity.x += 0.3f;
+        }
         if (Gdx.input.isKeyPressed(Input.Keys.W) && canJump) {
-            velocity.y = 2f;
+            velocity.y = 5f;
             canJump = false;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) velocity.x = -1f;
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) velocity.x = 1f;
+        System.out.println(velocity.y);
+//        velocity.x += 0.2f;
 
-        velocity.x *= 0.8f;
-        velocity.y -= 0.1f;
+        if (!Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.D)) {
+            velocity.x *= canJump ? 0.8f : 0.95f;
+        }
 
         Main.camera.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Vector2 cell = RayCaster.debugRayCastToTile(
-                getPos().add(8, 8),
-                velocity.cpy(),
-                Main.camera.shapeRenderer);
+
+        Vector2 pos = getPos();
+
+        ArrayList<TileRayCastResult> results = hitbox.rayCastCorners(velocity.cpy(), pos, Main.camera.shapeRenderer);
 
         posX += velocity.x;
         posY += velocity.y;
 
-        if (cell != null) {
-            int cellY = (int) cell.y >> 4 << 4;
-            if (posY + 16 > cellY && velocity.y > 0) {
-                velocity.y = 0;
-                posY = cellY - 16;
-            }
-            if (posY - 16 < cellY && velocity.y < 0) {
-                velocity.y = 0;
-                posY = cellY + 16;
-                canJump = true; // TODO Air-jump possible once
+        for (TileRayCastResult rayCastResult : results) {
+
+            if (rayCastResult != null) {
+                Vector2 cell = rayCastResult.position;
+
+                int cellBottom = (int) cell.y >> 4 << 4;
+                int cellLeft = (int) cell.x >> 4 << 4;
+                int cellRight = cellLeft + 16;
+                int cellTop = cellBottom + 16;
+
+                float eLeft = pos.x;
+                float eRight = pos.x + 16;
+                float eTop = pos.y + 16;
+                float eBottom = pos.y;
+
+                float distToCorrectVerticalPosRight = cellRight - eLeft;
+                float distToCorrectVerticalPosLeft = cellLeft - eRight;
+
+                float distToCorrectHorizontalPosTop = cellTop - eBottom;
+                float distToCorrectHorizontalPosBottom = cellBottom - eTop;
+
+                boolean b = Math.abs(distToCorrectHorizontalPosTop) < Math.abs(distToCorrectHorizontalPosBottom);
+                float distanceY = b ? distToCorrectHorizontalPosTop : distToCorrectHorizontalPosBottom;
+
+                float distanceX = Math.abs(distToCorrectVerticalPosRight) < Math.abs(distToCorrectVerticalPosLeft) ?
+                        distToCorrectVerticalPosRight : distToCorrectVerticalPosLeft;
+
+                if (Math.abs(distanceX) < Math.abs(distanceY)) {
+                    posX += distanceX;
+                    velocity.x = 0;
+                } else {
+                    posY += distanceY;
+                    velocity.y = 0;
+                    canJump = b;
+                    break;
+                }
             }
         }
+        velocity.y -= 0.2f;
 
-        if (posY < 0) posY = 140;
+
         Main.camera.shapeRenderer.end();
         sprite.setBounds(posX, posY, 16, 16);
     }
@@ -76,5 +111,6 @@ public class Entity {
     public void teleport(float x, float y) {
         posX = x;
         posY = y;
+        velocity = new Vector2();
     }
 }

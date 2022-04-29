@@ -2,15 +2,14 @@ package org.pipeman.dinjogame.physics;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import org.pipeman.dinjogame.Direction;
+
 import static org.pipeman.dinjogame.Main.map;
 import static java.lang.Math.sqrt;
 
 public class RayCaster {
-    static final float maxDistance = 400;
 
-    public static Vector2 rayCastToTile(Vector2 start, Vector2 dir) {
-        dir.nor();
-
+    public static TileRayCastResult rayCastToTile(Vector2 start, Vector2 dir, float maxDistance) {
         Vector2 rayUnitStepSize = new Vector2(
                 (float) sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)),
                 (float) sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))
@@ -51,19 +50,19 @@ public class RayCaster {
                 rayLength1d.y += rayUnitStepSize.y;
             }
 
-            if (!map.getCell((int) mapCheck.x / 16, (int) mapCheck.y / 16).transparent) {
-                return mapCheck;
+            if (!map.getCell((int) mapCheck.x >> 4, (int) mapCheck.y >> 4).transparent) {
+                return new TileRayCastResult(mapCheck, Direction.DOWN);
             }
         }
         return null;
     }
-    
-    public static Vector2 debugRayCastToTile(Vector2 start, Vector2 dir, ShapeRenderer r) {
-        r.line(start.x, start.y, start.x + dir.x * 100, start.y + dir.y * 100);
-        Vector2 result = rayCastToTile(start, dir);
+
+    public static TileRayCastResult debugRayCastToTile(Vector2 start, Vector2 dir, ShapeRenderer r, float maxDistance) {
+        r.line(start.x, start.y, start.x + dir.x, start.y + dir.y);
+        TileRayCastResult result = rayCastToTile(start, dir, maxDistance);
         if (result != null) {
-            map.highlightCell(result, r);
-            r.circle(result.x, result.y, 1);
+            map.highlightCell(result.position, r);
+            r.circle(result.position.x, result.position.y, 1);
         }
 
         return result;
