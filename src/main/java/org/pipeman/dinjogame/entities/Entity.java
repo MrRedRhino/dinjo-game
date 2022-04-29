@@ -43,8 +43,6 @@ public class Entity {
             velocity.y = 5f;
             canJump = false;
         }
-        System.out.println(velocity.y);
-//        velocity.x += 0.2f;
 
         if (!Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.D)) {
             velocity.x *= canJump ? 0.8f : 0.95f;
@@ -56,9 +54,7 @@ public class Entity {
 
         ArrayList<TileRayCastResult> results = hitbox.rayCastCorners(velocity.cpy(), pos, Main.camera.shapeRenderer);
 
-        posX += velocity.x;
-        posY += velocity.y;
-
+        boolean hasCollidedY = false;
         for (TileRayCastResult rayCastResult : results) {
 
             if (rayCastResult != null) {
@@ -80,25 +76,33 @@ public class Entity {
                 float distToCorrectHorizontalPosTop = cellTop - eBottom;
                 float distToCorrectHorizontalPosBottom = cellBottom - eTop;
 
-                boolean b = Math.abs(distToCorrectHorizontalPosTop) < Math.abs(distToCorrectHorizontalPosBottom);
-                float distanceY = b ? distToCorrectHorizontalPosTop : distToCorrectHorizontalPosBottom;
+                boolean upside = Math.abs(distToCorrectHorizontalPosTop) < Math.abs(distToCorrectHorizontalPosBottom);
+                float distanceY = upside ? distToCorrectHorizontalPosTop : distToCorrectHorizontalPosBottom;
 
-                float distanceX = Math.abs(distToCorrectVerticalPosRight) < Math.abs(distToCorrectVerticalPosLeft) ?
-                        distToCorrectVerticalPosRight : distToCorrectVerticalPosLeft;
+                boolean rightSmaller = Math.abs(distToCorrectVerticalPosRight) < Math.abs(distToCorrectVerticalPosLeft);
+                float distanceX = rightSmaller ? distToCorrectVerticalPosRight : distToCorrectVerticalPosLeft;
+
+                float hIntersection = 16 - Math.abs(eTop - cellTop);
 
                 if (Math.abs(distanceX) < Math.abs(distanceY)) {
-                    posX += distanceX;
-                    velocity.x = 0;
+                    if (hIntersection > 0.4) {
+                        posX += distanceX;
+                        velocity.x = 0;
+                    }
                 } else {
-                    posY += distanceY;
-                    velocity.y = 0;
-                    canJump = b;
-                    break;
+                    if (!hasCollidedY) {
+                        posY += distanceY;
+                        velocity.y = 0;
+                        canJump = upside;
+                        hasCollidedY = true;
+                    }
                 }
             }
         }
         velocity.y -= 0.2f;
 
+        posX += velocity.x;
+        posY += velocity.y;
 
         Main.camera.shapeRenderer.end();
         sprite.setBounds(posX, posY, 16, 16);
